@@ -77,7 +77,7 @@ def build_data_set(principal,ror,periods,withdrawl_rate):
 source = build_data_set(principal,percent_increase/100,years,percent_withdrawl/100)
 
 def get_chart2(data):
-    hover = alt.selection_single(
+    hover = alt.selection_point(
         fields=["index","principal"],
         nearest=True,
         on="mouseover",
@@ -104,7 +104,7 @@ def get_chart2(data):
                 alt.Tooltip("principal",format='$,.2f', title="Price (USD)"),
             ],
         )
-        .add_selection(hover)
+        .add_params(hover)
     )
 
     points = lines.transform_filter(hover).mark_circle(size=65)
