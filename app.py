@@ -5,11 +5,6 @@ from vega_datasets import data
 import altair as alt
 
 
-
-
-# def format_currency(x):
-#     return "${:,.2f}".format(x)
-
 st.write("This is a demonstration of the 4% rule.  This rule says you should withdraw no more than 4% per year in retirement for the first year and adjust the withdrawl amount for inflation every year after.  This should allow your money to last approx 30 years.")
 
 principal = st.number_input("Starting amount",value=1000000,key="principal",step=100)
@@ -93,7 +88,7 @@ def get_chart2(data):
         alt.Chart(data, title="4% Rule")
         .mark_line()
         .encode(
-            x="index",
+            x=alt.X("index",axis=alt.Axis(title="Years")),
             y="principal" 
         )
     )
