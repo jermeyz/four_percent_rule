@@ -10,13 +10,13 @@ import altair as alt
 # def format_currency(x):
 #     return "${:,.2f}".format(x)
 
-# st.write("This is a demonstration of the 4% rule.  This rule says you should withdraw no more than 4% per year in retirement if you want your money to last forever")
+st.write("This is a demonstration of the 4% rule.  This rule says you should withdraw no more than 4% per year in retirement for the first year and adjust the withdrawl amount for inflation every year after.  This should allow your money to last approx 30 years.")
 
 principal = st.number_input("Starting amount",value=1000000,key="principal",step=100)
-# percent_increase = st.number_input("Average percent gain for future",value=4.0,key="percent_increase",step=1.0)
-# years = st.number_input("Years to live",value=5,key="years",step=1)
+percent_increase = st.number_input("Average percent gain for future",value=8.0,key="percent_increase",step=1.0)
+years = st.number_input("Years to live",value=30,key="years",step=1)
 # times_per_year = st.number_input("Compounding steps",value=1,key="times_per_year",step=1)
-# percent_withdrawl = st.number_input("Percent Withdrawl",value=4,key="percent_withdrawl",step=1)
+percent_withdrawl = st.number_input("Percent Withdrawl",value=4.0,key="percent_withdrawl",step=1.0)
 # st.write("The current number is ", principal)
 
 # # Calculate the total number of compounding periods
@@ -55,14 +55,13 @@ principal = st.number_input("Starting amount",value=1000000,key="principal",step
 
 # We use @st.cache_data to keep the dataset in cache
 @st.cache_data
-def build_data_set():
+def build_data_set(principal,ror,periods,withdrawl_rate):
     # source = data.stocks()
     # source = source[source.date.gt("2004-01-01")]
-    # source
-    init_amount = 2000000
-    steps = 30
-    interest_rate = .07
-    withdrawl_percent = 0.04
+    init_amount = principal
+    steps = periods
+    interest_rate = ror
+    withdrawl_percent = withdrawl_rate
     df = pd.DataFrame(index=range(steps ), columns=[ 'principal','interest_earned','withdrawl_amount'])
     df.at[0,'principal'] = init_amount
     for period in range(1, steps + 1):
@@ -75,17 +74,12 @@ def build_data_set():
         df.at[period,'principal'] = new_balance - (df.at[period,'withdrawl_amount'])
 
     sdf = df.style.format({'principal': '${:,.2f}','interest_earned': '${:,.2f}','withdrawl_amount': '${:,.2f}'})
-    sdf
-    # float_values = np.linspace(start=10000.0, stop=100.0, num=100)
-    # d = pd.DataFrame(float_values,index=range(100), columns=[ 'principal'])
-    # d['interest'] = 1 
-    # 
-    # d.rename(columns={'index': 'Index'}, inplace=True)
+    #sdf
     df.index.name = "index"
     df.reset_index(inplace=True)
     return df
 
-source = build_data_set()
+source = build_data_set(principal,percent_increase/100,years,percent_withdrawl/100)
 
 def get_chart2(data):
     hover = alt.selection_single(
@@ -121,43 +115,7 @@ def get_chart2(data):
     points = lines.transform_filter(hover).mark_circle(size=65)
 
     return (lines + points +tooltips)#.interactive()
-# def get_chart(data):
-#     hover = alt.selection_single(
-#         fields=["date"],
-#         nearest=True,
-#         on="mouseover",
-#         empty="none",
-#     )
 
-#     lines = (
-#         alt.Chart(data, title="Evolution of stock prices")
-#         .mark_line()
-#         .encode(
-#             x="date",
-#             y="price",
-#             color="symbol",
-#         )
-#     )
-
-#     # Draw points on the line, and highlight based on selection
-#     points = lines.transform_filter(hover).mark_circle(size=65)
-
-#     # Draw a rule at the location of the selection
-#     tooltips = (
-#         alt.Chart(data)
-#         .mark_rule()
-#         .encode(
-#             x="yearmonthdate(date)",
-#             y="price",
-#             opacity=alt.condition(hover, alt.value(0.3), alt.value(0)),
-#             tooltip=[
-#                 alt.Tooltip("date", title="Date"),
-#                 alt.Tooltip("price", title="Price (USD)"),
-#             ],
-#         )
-#         .add_selection(hover)
-#     )
-#     return (lines + points + tooltips).interactive()
 
 chart = get_chart2(source)
 
@@ -165,6 +123,10 @@ st.altair_chart(
     (chart ),
     use_container_width=True
 )
+styled_dataset = source.style.format({'principal': '${:,.2f}','interest_earned': '${:,.2f}','withdrawl_amount': '${:,.2f}'})
 
-st.write(f"${source['interest_earned'].sum():,.2f}")
-st.write(f"${source['withdrawl_amount'].sum():,.2f}")
+
+st.write(f"Total interest earned: ${source['interest_earned'].sum():,.2f}")
+st.write(f"Total amount withdrawn: ${source['withdrawl_amount'].sum():,.2f}")
+
+styled_dataset
