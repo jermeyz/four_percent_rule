@@ -67,10 +67,23 @@ def get_chart(data):
 '''
 # 4% Withdrawal Rule Calculator
 
+This is a demonstration of the 4% rule.
 
+This rule says you can withdraw no more than 4% per year in retirement for the first year and adjust the withdrawl amount for inflation every year after.  
+
+This should allow your money to last approx 30 years.
+
+**As an example:**
+
+> Starting amount = $100,000
+>
+> Assuming inflation = 3%
+>
+> First year you can withdrawal = (.04 * 100,000) =  $4000
+>
+> Second year you can withdrawal = ((.04 * 1.03) * 96,000) = $3955.20
 '''
 
-st.write("This is a demonstration of the 4% rule.  This rule says you should withdraw no more than 4% per year in retirement for the first year and adjust the withdrawl amount for inflation every year after.  This should allow your money to last approx 30 years.")
 with st.sidebar:
     principal = st.number_input("**Starting amount**",value=1000000,key="principal",step=100)
     percent_increase = st.number_input("**Average percent gain for future**",value=8.0,key="percent_increase",step=1.0)
