@@ -75,13 +75,15 @@ This should allow your money to last approx 30 years.
 
 **As an example:**
 
-> Starting amount = $100,000
+> _Starting amount = $100,000_
 >
-> Assuming inflation = 3%
+> _Assuming inflation = 3%_
 >
-> First year you can withdrawal = (.04 * 100,000) =  $4000
+> _Assuming zero rate of return_
 >
-> Second year you can withdrawal = ((.04 * 1.03) * 96,000) = $3955.20
+> ***First year you can withdrawal = (.04 * 100,000) =  $4000***
+>
+> ***Second year you can withdrawal = ((.04 * 1.03) * 96,000) = $3955.20***
 '''
 
 with st.sidebar:
