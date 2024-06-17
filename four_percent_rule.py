@@ -41,7 +41,7 @@ def get_chart(data):
         .mark_line()
         .encode(
             x=alt.X("index",axis=alt.Axis(title="Years")),
-            y=alt.Y("principal",axis=alt.Axis(title="Total Amount")) 
+            y=alt.Y("principal",axis=alt.Axis(title="Total Amount Remaining")) 
         )
     )
     tooltips = (
@@ -107,8 +107,6 @@ with st.container(border=True):
         use_container_width=True
 )
 styled_dataset = source.style.format({'principal': '${:,.2f}','interest_earned': '${:,.2f}','withdrawl_amount': '${:,.2f}'})
-
-
 
 
 st.table(styled_dataset)
