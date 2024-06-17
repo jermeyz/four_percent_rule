@@ -5,25 +5,25 @@ from vega_datasets import data
 import altair as alt
 
 @st.cache_data
-def build_data_set(principal,ror,periods,withdrawl_rate):
-    # source = data.stocks()
-    # source = source[source.date.gt("2004-01-01")]
+def build_data_set(principal,ror,periods,withdrawl_rate,rate_of_inflation):
     init_amount = principal
     steps = periods
     interest_rate = ror
     withdrawl_percent = withdrawl_rate
     df = pd.DataFrame(index=range(steps ), columns=[ 'principal','interest_earned','withdrawl_amount'])
     df.at[0,'principal'] = init_amount
+    df.at[0,'interest_earned'] = init_amount * interest_rate
+    df.at[0,'withdrawl_amount'] = (df.at[0,'interest_earned'] +  init_amount) * withdrawl_percent
+    last_withdrawal_percent = withdrawl_percent
     for period in range(1, steps + 1):
         previous = df.at[period-1,'principal']
         interest = previous  * ( interest_rate)
         df.at[period,'interest_earned'] = interest
         new_balance = interest + previous
-        df.at[period,'withdrawl_amount'] =  (new_balance * withdrawl_percent)
+        df.at[period,'withdrawl_amount'] =  (new_balance * last_withdrawal_percent)
+        last_withdrawal_percent = last_withdrawal_percent * (1 + rate_of_inflation)
         df.at[period,'principal'] = new_balance - (df.at[period,'withdrawl_amount'])
 
-    sdf = df.style.format({'principal': '${:,.2f}','interest_earned': '${:,.2f}','withdrawl_amount': '${:,.2f}'})
-    #sdf
     df.index.name = "index"
     df.reset_index(inplace=True)
     return df
@@ -95,17 +95,16 @@ with st.sidebar:
 
 
 
-source = build_data_set(principal,percent_increase/100,years,percent_withdrawl/100)
+source = build_data_set(principal,percent_increase/100,years,percent_withdrawl/100,inflation_rate/100)
 
-st.write(f"**Total interest earned:** ${source['interest_earned'].sum():,.2f}")
-st.write(f"**Total amount withdrawn:** ${source['withdrawl_amount'].sum():,.2f}")
+with st.container(border=True):
 
+    st.write(f"**Total interest earned:** ${source['interest_earned'].sum():,.2f}")
+    st.write(f"**Total amount withdrawn:** ${source['withdrawl_amount'].sum():,.2f}")
 
-
-
-st.altair_chart(
-    (get_chart(source) ),
-    use_container_width=True
+    st.altair_chart(
+        (get_chart(source) ),
+        use_container_width=True
 )
 styled_dataset = source.style.format({'principal': '${:,.2f}','interest_earned': '${:,.2f}','withdrawl_amount': '${:,.2f}'})
 
