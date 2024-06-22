@@ -36,6 +36,8 @@ def build_data_set_actual_data(principal, withdrawal_rate, real_data):
     df.at[0, 'principal'] = _principal
     df.at[0, 'interest_earned'] = _principal * (real_data.at[0, "sp_returns"] / 100)
     df.at[0, 'withdrawal_amount'] = (df.at[0, 'interest_earned'] + _principal) * _withdrawal_rate
+    df.at[0, "yearly_returns"] = real_data.at[0, "sp_returns"]
+    df.at[0, "inflation_rate"] = real_data.at[0, "inflation_rate"]
     last_withdrawal_percent = _withdrawal_rate
     for period in range(1, steps):
         previous = df.at[period - 1, 'principal']
@@ -111,10 +113,10 @@ This should allow your money to last approximately 30 years.
 
 with st.sidebar:
     principal = st.number_input("**Starting amount**", value=1000000, key="principal", step=100)
-    percent_increase = st.number_input("**Average percent gain for future**", value=8.0, key="percent_increase", step=1.0)
+    percent_increase = st.number_input("**Average percent gain for future**", value=9.58, key="percent_increase", step=1.0)
     years = st.number_input("**Years to live**", value=30, key="years", step=1)
     percent_withdrawal = st.number_input("**Percent Withdrawal**", value=4.0, key="percent_withdrawal", step=1.0)
-    inflation_rate = st.number_input("**Inflation Rate**", value=2.0, key="inflation_rate", step=0.5)
+    inflation_rate = st.number_input("**Inflation Rate**", value=2.53, key="inflation_rate", step=0.5)
 
 source = build_data_set(principal, percent_increase / 100, years, percent_withdrawal / 100, inflation_rate / 100)
 real_returns = {
@@ -127,25 +129,34 @@ rdf = pd.DataFrame(real_returns)
 avg_returns = rdf['sp_returns'].mean()
 avg_inflation = rdf['inflation_rate'].mean()
 
-with st.container():
+with st.container(border=True):
     st.write(f"**Total interest earned:** ${source['interest_earned'].sum():,.2f}")
     st.write(f"**Total amount withdrawn:** ${source['withdrawal_amount'].sum():,.2f}")
     st.altair_chart(
         get_chart(source),
         use_container_width=True
     )
-
-renamed_source = source.rename(columns={
+    renamed_source = source.rename(columns={
     'principal': 'Principal Amount',
     'interest_earned': 'Interest Earned',
     'withdrawal_amount': 'Withdrawal Amount'
-}).drop(columns=['index'])
-styled_dataset = renamed_source.style.format({'Principal Amount': '${:,.2f}', 'Interest Earned': '${:,.2f}', 'Withdrawal Amount': '${:,.2f}'})
+    }).drop(columns=['index'])
+    styled_dataset = renamed_source.style.format({'Principal Amount': '${:,.2f}', 'Interest Earned': '${:,.2f}', 'Withdrawal Amount': '${:,.2f}'})
 
-st.table(styled_dataset)
+    with st.expander("See dataset"):
+        st.table(styled_dataset)
+
+
 
 real_data = build_data_set_actual_data(principal, percent_withdrawal / 100, rdf)
-styled_dataset = real_data.style.format({'principal': '${:,.2f}', 'interest_earned': '${:,.2f}', 'withdrawal_amount': '${:,.2f}'})
+real_data_renamed = real_data.rename(columns={
+    'principal': 'Principal Amount',
+    'interest_earned': 'Interest Earned',
+    'withdrawal_amount': 'Withdrawal Amount',
+    'yearly_returns': 'Yearly Return for S&P',
+    'inflation_rate': 'Yearly Inflation Rate',
+}).drop(columns=['index'])
+styled_dataset = real_data_renamed.style.format({'Principal Amount': '${:,.2f}', 'Interest Earned': '${:,.2f}', 'Withdrawal Amount': '${:,.2f}', 'Yearly Return for S&P': '{:,.2f}%', 'Yearly Inflation Rate': '{:,.2f}%'})
 
 with st.container(border=True):
     st.write(f"**Total interest earned against real data:** ${real_data['interest_earned'].sum():,.2f}")
@@ -156,4 +167,5 @@ with st.container(border=True):
         get_chart(real_data),
         use_container_width=True
     )
-    st.table(styled_dataset)
+    with st.expander("See dataset"):
+        st.table(styled_dataset)
