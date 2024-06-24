@@ -14,6 +14,8 @@ def build_data_set(principal, future_percent_return, periods, withdrawal_rate, r
     df.at[0, 'principal'] = _init_amount
     df.at[0, 'interest_earned'] = _init_amount * _future_percent_return
     df.at[0, 'withdrawal_amount'] = (df.at[0, 'interest_earned'] + _init_amount) * _withdrawal_rate
+    df.at[0, "yearly_returns"] =  _future_percent_return * 100
+    df.at[0, "inflation_rate"] = rate_of_inflation * 100
     last_withdrawal_percent = _withdrawal_rate
     for period in range(1, _periods + 1):
         previous = df.at[period - 1, 'principal']
@@ -23,7 +25,8 @@ def build_data_set(principal, future_percent_return, periods, withdrawal_rate, r
         df.at[period, 'withdrawal_amount'] = new_balance * last_withdrawal_percent
         last_withdrawal_percent = last_withdrawal_percent * (1 + rate_of_inflation)
         df.at[period, 'principal'] = new_balance - df.at[period, 'withdrawal_amount']
-
+        df.at[period, "yearly_returns"] =  _future_percent_return * 100
+        df.at[period, "inflation_rate"] = rate_of_inflation * 100
     df.index.name = "index"
     df.reset_index(inplace=True)
     return df
@@ -54,7 +57,7 @@ def build_data_set_actual_data(principal, withdrawal_rate, real_data):
     df.reset_index(inplace=True)
     return df
 
-def get_chart(data):
+def get_chart(data,title:str):
     hover = alt.selection_point(
         fields=["index", "principal"],
         nearest=True,
@@ -63,7 +66,7 @@ def get_chart(data):
     )
 
     lines = (
-        alt.Chart(data, title="Growth of initial principal over time factoring in withdrawals")
+        alt.Chart(data, title=title)
         .mark_line()
         .encode(
             x=alt.X("index", axis=alt.Axis(title="Years")),
@@ -133,15 +136,17 @@ with st.container(border=True):
     st.write(f"**Total interest earned:** ${source['interest_earned'].sum():,.2f}")
     st.write(f"**Total amount withdrawn:** ${source['withdrawal_amount'].sum():,.2f}")
     st.altair_chart(
-        get_chart(source),
+        get_chart(source,"Growth of initial principal over time factoring in withdrawals"),
         use_container_width=True
     )
     renamed_source = source.rename(columns={
     'principal': 'Principal Amount',
     'interest_earned': 'Interest Earned',
-    'withdrawal_amount': 'Withdrawal Amount'
+    'withdrawal_amount': 'Withdrawal Amount',
+    'yearly_returns': 'Yearly Returns',
+    'inflation_rate': 'Yearly Inflation Rate'
     }).drop(columns=['index'])
-    styled_dataset = renamed_source.style.format({'Principal Amount': '${:,.2f}', 'Interest Earned': '${:,.2f}', 'Withdrawal Amount': '${:,.2f}'})
+    styled_dataset = renamed_source.style.format({'Principal Amount': '${:,.2f}', 'Interest Earned': '${:,.2f}', 'Withdrawal Amount': '${:,.2f}','Yearly Returns':'${:,.2f}%','Yearly Inflation Rate':'${:,.2f}%'})
 
     with st.expander("See dataset"):
         st.table(styled_dataset)
@@ -164,7 +169,7 @@ with st.container(border=True):
     st.write(f"**Average Returns:** {avg_returns/100:,.2%}")
     st.write(f"**Average Inflation:** {avg_inflation/100:,.2%}")
     st.altair_chart(
-        get_chart(real_data),
+        get_chart(real_data,"Growth of initial principal over time factoring in withdrawals with real historical returns"),
         use_container_width=True
     )
     with st.expander("See dataset"):
