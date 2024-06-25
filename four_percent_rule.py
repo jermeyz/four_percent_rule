@@ -5,7 +5,18 @@ from vega_datasets import data
 import altair as alt
 
 @st.cache_data
-def build_data_set(principal, future_percent_return, periods, withdrawal_rate, rate_of_inflation):
+def build_data_set(principal : float, future_percent_return : float, periods : int, withdrawal_rate : float, rate_of_inflation : float) -> pd.DataFrame:
+    """Computes the interest and withdrawal amount for each step in periods
+    
+       Parameters:
+         principal (float): Amount in dollars.  ex. 100000.34
+         future_percent_return (float): Expected return on investments. Should be expressed as a fraction of 1 ex. .04 =  4%
+         periods (int):  number of years to compute.
+         withdrawal_rate (float): Expected future withdrawal rate. Should be expressed as a fraction of 1 ex. .04 =  4%
+         rate_of_inflation (float): Expected future inflation rate. Should be expressed as a fraction of 1 ex. .04 =  4%
+        
+        Returns a DataFrame
+    """
     _init_amount = principal
     _periods = periods
     _future_percent_return = future_percent_return
@@ -31,7 +42,19 @@ def build_data_set(principal, future_percent_return, periods, withdrawal_rate, r
     df.reset_index(inplace=True)
     return df
 
-def build_data_set_actual_data(principal, withdrawal_rate, real_data):
+
+
+def build_data_set_actual_data(principal : float, withdrawal_rate: float, real_data: pd.DataFrame)  -> pd.DataFrame:
+
+    """Computes the interest and withdrawal amount for each step in periods
+    
+       Parameters:
+         principal (float): Amount in dollars.  ex. 100000.34
+         withdrawal_rate (float): Expected future withdrawal rate. Should be expressed as a fraction of 1 ex. .04 =  4%
+         real_data (DataFrame): DataFrame with a shape of (31, 3)  columns = "Year" ,"sp_returns" , "inflation_rate"
+        
+        Returns a DataFrame
+    """
     _principal = principal
     steps = 30
     _withdrawal_rate = withdrawal_rate
@@ -90,7 +113,7 @@ def get_chart(data,title:str):
 
     points = lines.transform_filter(hover).mark_circle(size=65)
 
-    return lines + points + tooltips  # .interactive()
+    return lines + points + tooltips
 
 '''
 # 4% Withdrawal Rule Calculator
